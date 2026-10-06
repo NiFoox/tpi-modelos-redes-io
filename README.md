@@ -1,2 +1,28 @@
 # tpi-modelos-redes-io
-Aplicación para cargar, visualizar y resolver modelos de redes mediante Prim, Kruskal, Dijkstra, Ford-Fulkerson, CPM y PERT. TPI Investigación Operativa - UTN FRVT 2026.
+# TPI Modelos de Redes - Investigación Operativa
+
+Aplicación desarrollada para el Trabajo Práctico Integrador de
+Investigación Operativa de Ingeniería en Sistemas de Información
+- UTN FRVT, 2026.
+
+## Objetivo
+
+Desarrollar una aplicación que permita cargar, representar y resolver
+grafos de diferentes tamaños utilizando algoritmos de redes estudiados
+en la asignatura.
+
+## Algoritmos
+
+- Prim
+- Kruskal
+- Dijkstra
+- Ford-Fulkerson (Flujo Máximo)
+- CPM
+- PERT
+
+## Tecnologías
+
+- Python
+- Streamlit
+
+> Proyecto en desarrollo.
