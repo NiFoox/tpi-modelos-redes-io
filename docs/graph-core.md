@@ -102,21 +102,8 @@ en el mismo sentido entre dos nodos. Si un caso docente requiere aristas paralel
 habrá que agregar identificadores de arista y adaptar los índices; no se deben
 sumar ni descartar esas conexiones silenciosamente. No hay un máximo fijo de nodos.
 
-## Verificación y defensa
+## Verificación
 
-Ejecutar `python -m unittest discover -s tests -v` desde la raíz. Se usa unittest
-para que la primera etapa sea ejecutable sin dependencias externas. Se podrá
-incorporar pytest después si aporta utilidad; no es requisito de la consigna.
-
-Las pruebas cubren sentido de recorrido, duplicados, antiparalelos, eliminación,
-inmutabilidad, errores sin cambios parciales y una red de 200 nodos con un aislado.
-Ese caso no es un benchmark de la futura interfaz ni de los algoritmos.
-
-Respuesta posible para la defensa:
-
-> Representamos cada nodo mediante un identificador de texto. Guardamos las
-> aristas una sola vez y mantenemos índices de vecinos que apuntan a ellas.
-> Esto permite recorrer conexiones sin revisar una matriz completa y también
-> obtener todas las aristas para Kruskal. El grafo controla las modificaciones
-> para mantener ambos índices coherentes. La interfaz y los algoritmos usarán
-> este modelo sin depender uno del otro.
+Ejecutar `python -m unittest discover -s tests -v` desde la raíz.
+Las pruebas del modelo cubren orientación, eliminación, inmutabilidad,
+validación de entradas y carga de una red de 200 nodos.

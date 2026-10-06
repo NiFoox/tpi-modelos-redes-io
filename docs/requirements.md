@@ -38,7 +38,7 @@ La consigna deja la fecha de entrega a definir.
 | --- | --- | --- |
 | Cargar red | Crear nodos, orientación y conexiones con valores | Núcleo implementado; UI pendiente |
 | Modificar red | Quitar conexiones/nodos y cargar reemplazos | Núcleo implementado; UI pendiente |
-| Obtener árbol mínimo | Red no dirigida, ponderada y conectada; Prim/Kruskal | Pendiente |
+| Obtener árbol mínimo | Red no dirigida, ponderada y conectada; Prim/Kruskal | Kruskal implementado; Prim pendiente |
 | Obtener camino mínimo | Pesos no negativos y origen/destino; Dijkstra | Pendiente |
 | Obtener flujo máximo | Capacidades, fuente y sumidero; red dirigida | Pendiente |
 | Planificar proyecto | Actividades, precedencias y duraciones; CPM/PERT | Pendiente |
@@ -47,12 +47,12 @@ La consigna deja la fecha de entrega a definir.
 
 ## Etapas
 
-1. Núcleo Graph/Edge y pruebas de sus contratos (esta entrega).
-2. Kruskal y resultado específico de MST; luego Prim y comparación.
+1. Núcleo Graph/Edge y pruebas de sus contratos (implementado).
+2. Kruskal y resultado específico de MST (implementado); luego Prim y comparación.
 3. Dijkstra y flujo máximo, cada uno con parámetros y resultados propios.
 4. Modelo de actividades, CPM y PERT basado en la bibliografía disponible.
 5. UI, visualización, importación/exportación y paso a paso.
-6. Verificación con ejercicios docentes, redes nuevas y casos grandes; defensa.
+6. Verificación con ejercicios de referencia, redes nuevas y casos grandes.
 
 No se define todavía un resultado universal con campos ambiguos como
 `total_value`: distancia, capacidad y duración tienen significados diferentes.
@@ -67,5 +67,5 @@ La presentación común podrá construirse sobre resultados tipados por problema
 - Permitir nodos aislados y cargar un caso de 200 nodos.
 - Impedir cambios accidentales mediante las colecciones públicas.
 
-Las pruebas de esta etapa verifican el modelo; no demuestran aún corrección ni
-rendimiento de algoritmos que todavía no se implementaron.
+La verificación actual cubre el modelo y los casos esenciales de Kruskal.
+Las comparaciones con otros algoritmos y las pruebas de la interfaz están pendientes.

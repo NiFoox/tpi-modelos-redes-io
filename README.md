@@ -23,7 +23,8 @@ en la asignatura.
 
 Implementado el núcleo `Edge` / `Graph` con carga y eliminación de nodos y
 conexiones, listas de adyacencia, validaciones y pruebas automatizadas.
-Los seis algoritmos y la interfaz todavía están pendientes.
+Kruskal está implementado con costo total, aristas seleccionadas y registro del
+procedimiento. Prim, Dijkstra, Flujo Máximo, CPM, PERT y la interfaz están pendientes.
 
 ## Ejecutar las pruebas
 
@@ -57,10 +58,30 @@ for neighbor, edge in graph.neighbors("A"):
 Para representar capacidades: `Graph(directed=True)` y
 `graph.add_edge("S", "A", capacity=10)`.
 
+## Ejecutar Kruskal
+
+```python
+from src.algorithms.mst import KruskalAlgorithm
+from src.core import Graph
+
+graph = Graph()
+graph.add_edge("A", "B", weight=4)
+graph.add_edge("A", "C", weight=8)
+graph.add_edge("B", "C", weight=2)
+result = KruskalAlgorithm().solve(graph)
+print(result.total_weight)  # 6
+for step in result.steps:
+    print(step.iteration, step.edge, step.accepted, step.reason)
+```
+
+Kruskal requiere un grafo conectado. Si hay nodos aislados junto con otros nodos,
+informa que no existe un árbol que conecte toda la red.
+
 ## Diseño y alcance
 
+- [Kruskal: contrato y procedimiento](docs/kruskal.md)
 - [Requerimientos y etapas](docs/requirements.md)
-- [Modelo de grafos: decisiones y explicación para la defensa](docs/graph-core.md)
+- [Modelo de grafos y decisiones de diseño](docs/graph-core.md)
 
 Stack previsto: Python y Streamlit. La UI se incorporará después; el núcleo no
 depende de Streamlit ni de NetworkX. Los algoritmos se implementarán en el proyecto.
