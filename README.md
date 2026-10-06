@@ -23,8 +23,8 @@ en la asignatura.
 
 Implementado el núcleo `Edge` / `Graph` con carga y eliminación de nodos y
 conexiones, listas de adyacencia, validaciones y pruebas automatizadas.
-Kruskal está implementado con costo total, aristas seleccionadas y registro del
-procedimiento. Prim, Dijkstra, Flujo Máximo, CPM, PERT y la interfaz están pendientes.
+Prim y Kruskal están implementados con costo total, aristas seleccionadas y
+registro del procedimiento. Dijkstra, Flujo Máximo, CPM, PERT y la interfaz están pendientes.
 
 ## Ejecutar las pruebas
 
@@ -79,6 +79,7 @@ informa que no existe un árbol que conecte toda la red.
 
 ## Diseño y alcance
 
+- [Prim: contrato y procedimiento](docs/prim.md)
 - [Kruskal: contrato y procedimiento](docs/kruskal.md)
 - [Requerimientos y etapas](docs/requirements.md)
 - [Modelo de grafos y decisiones de diseño](docs/graph-core.md)
