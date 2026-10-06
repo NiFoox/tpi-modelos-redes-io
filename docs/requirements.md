@@ -38,7 +38,7 @@ La consigna deja la fecha de entrega a definir.
 | --- | --- | --- |
 | Cargar red | Crear nodos, orientación y conexiones con valores | Núcleo implementado; UI pendiente |
 | Modificar red | Quitar conexiones/nodos y cargar reemplazos | Núcleo implementado; UI pendiente |
-| Obtener árbol mínimo | Red no dirigida, ponderada y conectada; Prim/Kruskal | Kruskal implementado; Prim pendiente |
+| Obtener árbol mínimo | Red no dirigida, ponderada y conectada; Prim/Kruskal | Prim y Kruskal implementados |
 | Obtener camino mínimo | Pesos no negativos y origen/destino; Dijkstra | Pendiente |
 | Obtener flujo máximo | Capacidades, fuente y sumidero; red dirigida | Pendiente |
 | Planificar proyecto | Actividades, precedencias y duraciones; CPM/PERT | Pendiente |
@@ -48,7 +48,7 @@ La consigna deja la fecha de entrega a definir.
 ## Etapas
 
 1. Núcleo Graph/Edge y pruebas de sus contratos (implementado).
-2. Kruskal y resultado específico de MST (implementado); luego Prim y comparación.
+2. Prim, Kruskal y resultado específico de MST (implementados).
 3. Dijkstra y flujo máximo, cada uno con parámetros y resultados propios.
 4. Modelo de actividades, CPM y PERT basado en la bibliografía disponible.
 5. UI, visualización, importación/exportación y paso a paso.
@@ -67,5 +67,6 @@ La presentación común podrá construirse sobre resultados tipados por problema
 - Permitir nodos aislados y cargar un caso de 200 nodos.
 - Impedir cambios accidentales mediante las colecciones públicas.
 
-La verificación actual cubre el modelo y los casos esenciales de Kruskal.
-Las comparaciones con otros algoritmos y las pruebas de la interfaz están pendientes.
+La verificación actual cubre el modelo y los casos esenciales de Prim y Kruskal.
+La comparación de costos entre Prim y Kruskal está cubierta; las pruebas de la
+interfaz y la validación completa con ejercicios de referencia están pendientes.
