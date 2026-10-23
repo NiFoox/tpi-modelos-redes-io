@@ -24,7 +24,8 @@ en la asignatura.
 Implementado el núcleo `Edge` / `Graph` con carga y eliminación de nodos y
 conexiones, listas de adyacencia, validaciones y pruebas automatizadas.
 Prim y Kruskal están implementados con costo total, aristas seleccionadas y
-registro del procedimiento. Dijkstra, Flujo Máximo, CPM, PERT y la interfaz están pendientes.
+registro del procedimiento. Dijkstra obtiene rutas y distancias mínimas con su
+registro de relajaciones. Flujo Máximo, CPM, PERT y la interfaz están pendientes.
 
 ## Ejecutar las pruebas
 
@@ -79,6 +80,7 @@ informa que no existe un árbol que conecte toda la red.
 
 ## Diseño y alcance
 
+- [Dijkstra: contrato y procedimiento](docs/dijkstra.md)
 - [Prim: contrato y procedimiento](docs/prim.md)
 - [Kruskal: contrato y procedimiento](docs/kruskal.md)
 - [Requerimientos y etapas](docs/requirements.md)

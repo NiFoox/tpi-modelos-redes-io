@@ -39,7 +39,7 @@ La consigna deja la fecha de entrega a definir.
 | Cargar red | Crear nodos, orientación y conexiones con valores | Núcleo implementado; UI pendiente |
 | Modificar red | Quitar conexiones/nodos y cargar reemplazos | Núcleo implementado; UI pendiente |
 | Obtener árbol mínimo | Red no dirigida, ponderada y conectada; Prim/Kruskal | Prim y Kruskal implementados |
-| Obtener camino mínimo | Pesos no negativos y origen/destino; Dijkstra | Pendiente |
+| Obtener camino mínimo | Pesos no negativos y origen/destino; Dijkstra | Implementado |
 | Obtener flujo máximo | Capacidades, fuente y sumidero; red dirigida | Pendiente |
 | Planificar proyecto | Actividades, precedencias y duraciones; CPM/PERT | Pendiente |
 | Inspeccionar solución | Resultado, representación y procedimiento | Pendiente |
