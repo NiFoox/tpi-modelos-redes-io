@@ -1,0 +1,9 @@
+actividad,predecesoras,optimista,probable,pesimista
+A,,1,2,3
+B,,2,3,4
+C,A,1,2,3
+D,B,2,4,6
+E,C,1,4,7
+F,C,1,2,9
+G,D;E,3,4,11
+H,F;G,1,2,3
