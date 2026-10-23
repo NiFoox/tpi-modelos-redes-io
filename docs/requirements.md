@@ -19,7 +19,7 @@ de clase y los libros no se copian al repositorio.
 200 nodos es un caso de verificación, no un límite impuesto por el modelo.
 La consigna deja la fecha de entrega a definir.
 
-## Decisiones propuestas para la aplicación
+## Decisiones de implementación
 
 - Separar modelo de dominio, algoritmos e interfaz Streamlit.
 - Implementar los algoritmos en código propio; una biblioteca externa puede
@@ -36,27 +36,28 @@ La consigna deja la fecha de entrega a definir.
 
 | Caso | Entrada y comportamiento | Estado |
 | --- | --- | --- |
-| Cargar red | Crear nodos, orientación y conexiones con valores | Núcleo implementado; UI pendiente |
-| Modificar red | Quitar conexiones/nodos y cargar reemplazos | Núcleo implementado; UI pendiente |
+| Cargar red | Crear nodos, orientación y conexiones con valores | Implementado con editor y CSV |
+| Modificar red | Quitar conexiones/nodos y cargar reemplazos | Implementado con editor |
 | Obtener árbol mínimo | Red no dirigida, ponderada y conectada; Prim/Kruskal | Prim y Kruskal implementados |
 | Obtener camino mínimo | Pesos no negativos y origen/destino; Dijkstra | Implementado |
 | Obtener flujo máximo | Capacidades, fuente y sumidero; red dirigida | Implementado |
 | Planificar proyecto | Actividades, precedencias y duraciones; CPM/PERT | Implementado |
-| Inspeccionar solución | Resultado, representación y procedimiento | Pendiente |
-| Cargar archivo | Importar nodos explícitos y conexiones sin perder aislados | Pendiente |
+| Inspeccionar solución | Resultado, representación y procedimiento | Implementado |
+| Cargar archivo | Importar nodos explícitos y conexiones sin perder aislados | Implementado |
 
 ## Etapas
 
 1. Núcleo Graph/Edge y pruebas de sus contratos (implementado).
 2. Prim, Kruskal y resultado específico de MST (implementados).
-3. Dijkstra y flujo máximo, cada uno con parámetros y resultados propios.
-4. Modelo de actividades, CPM y PERT basado en la bibliografía disponible.
-5. UI, visualización, importación/exportación y paso a paso.
-6. Verificación con ejercicios de referencia, redes nuevas y casos grandes.
+3. Dijkstra y flujo máximo, con parámetros y resultados propios (implementados).
+4. Modelo de actividades, CPM y PERT basado en la bibliografía (implementado).
+5. UI, visualización, importación/exportación y paso a paso (implementado).
+6. Verificación con resultados conocidos, General Foundry, redes nuevas y casos
+   grandes (realizada; ampliar con los casos específicos de la cátedra al recibirlos).
 
-No se define todavía un resultado universal con campos ambiguos como
+No se utiliza un resultado universal con campos ambiguos como
 `total_value`: distancia, capacidad y duración tienen significados diferentes.
-La presentación común podrá construirse sobre resultados tipados por problema.
+La presentación común se construye sobre resultados tipados por problema.
 
 ## Criterios de aceptación del núcleo
 
@@ -67,6 +68,7 @@ La presentación común podrá construirse sobre resultados tipados por problema
 - Permitir nodos aislados y cargar un caso de 200 nodos.
 - Impedir cambios accidentales mediante las colecciones públicas.
 
-La verificación actual cubre el modelo y los casos esenciales de Prim y Kruskal.
-La comparación de costos entre Prim y Kruskal está cubierta; las pruebas de la
-interfaz y la validación completa con ejercicios de referencia están pendientes.
+La verificación cubre el modelo, los seis algoritmos, archivos y recorridos de
+interfaz. Las comprobaciones y sus límites se detallan en [application.md](application.md).
+La revisión final por los integrantes y la demostración con todos los casos
+específicos de la cátedra siguen formando parte de la preparación de la entrega.

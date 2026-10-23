@@ -1,0 +1,10 @@
+tipo,origen,destino,peso,capacidad
+nodo,A,,,
+nodo,B,,,
+nodo,C,,,
+nodo,D,,,
+arista,A,B,1,
+arista,B,C,2,
+arista,A,C,3,
+arista,C,D,4,
+arista,A,D,9,
