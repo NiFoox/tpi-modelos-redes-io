@@ -41,7 +41,7 @@ La consigna deja la fecha de entrega a definir.
 | Obtener árbol mínimo | Red no dirigida, ponderada y conectada; Prim/Kruskal | Prim y Kruskal implementados |
 | Obtener camino mínimo | Pesos no negativos y origen/destino; Dijkstra | Implementado |
 | Obtener flujo máximo | Capacidades, fuente y sumidero; red dirigida | Implementado |
-| Planificar proyecto | Actividades, precedencias y duraciones; CPM/PERT | Pendiente |
+| Planificar proyecto | Actividades, precedencias y duraciones; CPM/PERT | Implementado |
 | Inspeccionar solución | Resultado, representación y procedimiento | Pendiente |
 | Cargar archivo | Importar nodos explícitos y conexiones sin perder aislados | Pendiente |
 
