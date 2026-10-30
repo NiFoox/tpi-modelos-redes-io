@@ -28,7 +28,18 @@ def apply_theme():
 
 
 def brand():
-    st.html('''<div class="brand"><span class="brand-mark">⌘</span><div>Modelos de Redes<small>INVESTIGACIÓN OPERATIVA</small></div></div>''')
+    """Ocupa el espacio nativo del logo, en lugar de añadir otra cabecera."""
+    icon = '<rect x="1" y="1" width="34" height="34" rx="9" fill="#173a37" stroke="#2d5b53"/>'
+    icon += '<path d="M10 11h16M10 25h16M11 10v16M25 10v16" stroke="#42d6bd" stroke-width="2"/>'
+    icon += '<circle cx="18" cy="18" r="5" fill="#173a37" stroke="#42d6bd" stroke-width="2"/>'
+    image = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 238 36">'
+             '<title>Modelos de Redes · Investigación Operativa</title>' + icon +
+             '<text x="44" y="16" fill="#edf3fc" font-family="Arial,sans-serif" '
+             'font-size="16" font-weight="bold">Modelos de Redes</text>'
+             '<text x="44" y="30" fill="#92a5be" font-family="Arial,sans-serif" '
+             'font-size="7.6" letter-spacing=".9">INVESTIGACIÓN OPERATIVA</text></svg>')
+    compact = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">' + icon + '</svg>'
+    st.logo(image, size="large", icon_image=compact)
 
 
 def hero(algorithm, area):
