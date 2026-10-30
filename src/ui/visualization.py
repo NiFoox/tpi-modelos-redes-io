@@ -29,6 +29,18 @@ def _layout(figure, *, height=510, identity="network"):
     return figure
 
 
+def edge_curve(positions, source, target, reciprocal=False):
+    """Coordenadas de una arista, incluida la separación de arcos opuestos."""
+    x0, y0 = positions[source]
+    x1, y1 = positions[target]
+    dx, dy = x1 - x0, y1 - y0
+    bend = .24 if reciprocal else 0
+    mx, my = (x0 + x1) / 2 - dy * bend, (y0 + y1) / 2 + dx * bend
+    return [((1-t)**2*x0 + 2*(1-t)*t*mx + t*t*x1,
+             (1-t)**2*y0 + 2*(1-t)*t*my + t*t*y1)
+            for t in [i / 12 for i in range(13)]]
+
+
 def network_figure(graph: Graph, *, selected=(), selected_nodes=(), labels=None,
                    positions=None, project=False, focus=(), focus_node=None, roles=None):
     pairs = tuple((e.source, e.target) for e in graph.edges)
@@ -45,14 +57,7 @@ def network_figure(graph: Graph, *, selected=(), selected_nodes=(), labels=None,
     lines = {"base": ([], []), "selected": ([], []), "focus": ([], [])}
     for edge in graph.edges:
         u, v = edge.source, edge.target
-        x0, y0 = positions[u]
-        x1, y1 = positions[v]
-        dx, dy = x1 - x0, y1 - y0
-        bend = .24 if graph.directed and (v, u) in pair_set else 0
-        mx, my = (x0 + x1) / 2 - dy * bend, (y0 + y1) / 2 + dx * bend
-        curve = [((1-t)**2*x0 + 2*(1-t)*t*mx + t*t*x1,
-                  (1-t)**2*y0 + 2*(1-t)*t*my + t*t*y1)
-                 for t in [i / 12 for i in range(13)]]
+        curve = edge_curve(positions, u, v, graph.directed and (v, u) in pair_set)
         state = "focus" if (u, v) in focus else "selected" if (u, v) in selected else "base"
         xs, ys = lines[state]
         xs.extend([p[0] for p in curve] + [None])

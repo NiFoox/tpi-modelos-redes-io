@@ -33,9 +33,9 @@ def brand():
 
 def hero(algorithm, area):
     category, description = DESCRIPTIONS[algorithm]
-    st.html(f'''<header class="hero"><div class="eyebrow">ESPACIO DE ANÁLISIS <span>/</span> {escape(area.upper())}</div>
+    st.html(f'''<div class="hero" role="banner"><div class="eyebrow">ESPACIO DE ANÁLISIS <span>/</span> {escape(area.upper())}</div>
         <div class="hero-title"><h1>{escape(algorithm)}</h1><span class="pill">{escape(category)}</span></div>
-        <p>{escape(description)}</p></header>''')
+        <p>{escape(description)}</p></div>''')
 
 
 def section(number, title, subtitle=None):

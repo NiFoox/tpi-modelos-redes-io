@@ -9,6 +9,7 @@ from src.algorithms.shortest_path import ShortestPathResult
 from src.services.data_io import write_csv
 from .theme import chart, legend, metrics, note, section, step_controls
 from .visualization import network_figure, project_figure, gantt_figure
+from .animation import graph_playback, project_playback, render_playback
 
 
 def _table(rows, filename, *, download=True):
@@ -95,16 +96,15 @@ def _explore_graph(graph, result):
         _table(_graph_steps(result), "procedimiento_red.csv")
 
 
-def render_graph_result(graph, result, elapsed):
+def render_graph_result(graph, result, elapsed, *, start_node=None):
     if isinstance(result, MSTResult):
-        metrics([("Costo mínimo", f"{result.total_weight:g}"), ("Conexiones del árbol", str(len(result.selected_edges))),
-                 ("Tiempo de cálculo", f"{elapsed * 1000:.3f} ms")])
+        metrics([("Costo mínimo", f"{result.total_weight:g}"), ("Aristas", str(len(result.selected_edges)))])
     elif isinstance(result, ShortestPathResult):
         metrics([("Distancia mínima", f"{result.distance:g}" if result.reachable else "∞"),
-                 ("Nodos en la ruta", str(len(result.path))), ("Tiempo de cálculo", f"{elapsed * 1000:.3f} ms")])
+                 ("Nodos de la ruta", str(len(result.path)))])
     else:
-        metrics([("Flujo máximo", f"{result.total_flow:g}"), ("Corte mínimo", f"{result.cut_capacity:g}"),
-                 ("Tiempo de cálculo", f"{elapsed * 1000:.3f} ms")])
+        metrics([("Flujo máximo", f"{result.total_flow:g}"), ("Corte mínimo", f"{result.cut_capacity:g}")])
+    st.caption(f"Tiempo de cálculo: {elapsed * 1000:.2f} ms · Resultados de la ejecución completa")
     summary, connections, procedure = st.tabs(["Solución", "Conexiones", "Procedimiento"])
     with summary:
         roles = {}
@@ -127,7 +127,11 @@ def render_graph_result(graph, result, elapsed):
             roles = {result.source: "Origen", result.sink: "Destino"}
             note("Capacidad máxima alcanzada", f"Flujo máximo = capacidad del corte mínimo = {result.total_flow:g}. "
                  "Las etiquetas muestran flujo / capacidad.", tone="success")
-        chart(network_figure(graph, selected=selected, labels=labels, roles=roles), "graph_solution")
+        view = st.radio("Vista de la red", ["Animación", "Solución final"], horizontal=True, key="graph_view")
+        if view == "Animación":
+            render_playback(graph_playback(graph, result, start_node=start_node))
+        else:
+            chart(network_figure(graph, selected=selected, labels=labels, roles=roles), "graph_solution")
         legend()
         st.caption(f"{len(graph.nodes)} nodos · {len(graph.edges)} conexiones")
         if roles:
@@ -157,11 +161,11 @@ def render_project_result(project, result, elapsed):
     pert = isinstance(result, PERTResult)
     schedule = result.schedule if pert else result
     metrics([("Duración esperada" if pert else "Duración del proyecto", f"{schedule.duration:g}"),
-             ("Actividades críticas", str(len(schedule.critical_activities))),
+             ("Críticas", str(len(schedule.critical_activities))),
              ("Rutas críticas", str(schedule.critical_path_count))])
     note("Ruta crítica representativa" if schedule.critical_path_count > 1 else "Ruta crítica",
          " → ".join(schedule.critical_path), tone="success")
-    st.caption(f"Tiempo de cálculo: {elapsed * 1000:.3f} ms · Todas las duraciones usan la misma unidad.")
+    st.caption(f"Tiempo de cálculo: {elapsed * 1000:.2f} ms · Todas las duraciones usan la misma unidad.")
     if pert:
         st.caption(f"Varianza de la ruta mostrada: {result.critical_path_variance:.6g} · "
                    f"Desviación estándar: {sqrt(result.critical_path_variance):.6g}")
@@ -177,7 +181,11 @@ def render_project_result(project, result, elapsed):
                        "La ruta crítica puede cambiar por la variabilidad de los tiempos. La probabilidad es una aproximación, no una garantía.")
     network, timings, gantt, steps = st.tabs(["Red del proyecto", "Tiempos y holguras", "Gantt", "Procedimiento"])
     with network:
-        chart(project_figure(project, schedule), "project_solution")
+        view = st.radio("Vista del proyecto", ["Animación", "Solución final"], horizontal=True, key="project_view")
+        if view == "Animación":
+            render_playback(project_playback(project, schedule))
+        else:
+            chart(project_figure(project, schedule), "project_solution")
         legend(project=True)
         st.caption("★ y rombo: actividad crítica. Su holgura es cero; una demora retrasa el proyecto.")
     with timings:

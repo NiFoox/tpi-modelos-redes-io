@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root { color-scheme: dark; font-family: Arial, sans-serif; background: #111d2e; color: #e5edf8; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.player { height: 638px; display: flex; flex-direction: column; gap: 10px; padding: 2px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+button, select { background: #192c41; color: #e5edf8; border: 1px solid #38516b; border-radius: 7px; padding: 8px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+button:hover, select:hover { border-color: #42d6bd; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #63c7f4; outline-offset: 2px; }
+button.primary { background: #42d6bd; border-color: #42d6bd; color: #09211d; font-weight: bold; }
+button:disabled { opacity: .4; cursor: default; }
+label { font-size: 11px; color: #afc0d4; }
+.range-row { display: flex; align-items: center; gap: 10px; }
+input[type=range] { width: 100%; min-width: 60px; accent-color: #42d6bd; cursor: pointer; }
+#counter { font-size: 12px; white-space: nowrap; color: #b5c6d9; min-width: 70px; text-align: right; }
+#state { font-size: 11px; color: #6ee3ce; text-transform: uppercase; letter-spacing: .08em; }
+#graph { flex: 1; min-height: 220px; width: 100%; }
+.explanation { flex-shrink: 0; border: 1px solid #2c435b; border-left: 3px solid #42d6bd; background: #152437; border-radius: 8px; padding: 10px 12px; min-height: 68px; max-height: 112px; overflow: auto; }
+.explanation strong { font-size: 13px; }
+.explanation p { color: #b4c5d9; font-size: 12px; line-height: 1.45; margin: 5px 0 0; overflow-wrap: anywhere; }
+.footer { display: flex; gap: 8px 16px; flex-wrap: wrap; color: #a6bad0; font-size: 10px; }
+.footer label { font-size: 10px; display: flex; align-items: center; gap: 5px; }
+</style><script>__PLOTLY_SOURCE__</script></head><body>
+<div class="player" aria-label="Reproductor del procedimiento">
+  <div class="toolbar">
+    <button id="play" class="primary" disabled>▶ Reproducir</button>
+    <button id="reset" aria-label="Reiniciar procedimiento" disabled>↺ Reiniciar</button>
+    <button id="previous" aria-label="Paso anterior" disabled>←</button>
+    <button id="next" aria-label="Paso siguiente" disabled>→</button>
+    <button id="end" disabled>Final</button>
+    <label>Velocidad <select id="speed" aria-label="Velocidad de reproducción"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+  </div>
+  <div class="range-row"><input id="seek" type="range" min="0" value="0" aria-label="Paso del procedimiento" disabled><output id="counter"></output></div>
+  <span id="state" role="status">Preparando visualización…</span>
+  <div id="graph" role="img" aria-label="Grafo con el estado del procedimiento"></div>
+  <div class="explanation" aria-live="polite"><strong id="title"></strong><p id="description"></p></div>
+  <div class="footer"><span>Turquesa: selección · Ámbar: evaluación / cancelación</span><label><input id="reduce" type="checkbox">Movimiento reducido</label><span>Arrastrá para mover · Rueda para zoom</span></div>
+</div>
+<script id="playback-data" type="application/json">__PLAYBACK_DATA__</script>
+<script>
+(() => {
+  'use strict';
+  const model = JSON.parse(document.getElementById('playback-data').textContent);
+  const $ = id => document.getElementById(id);
+  const graph = $('graph'), events = model.events, total = events.length;
+  const accent = '#42D6BD', amber = '#F3BC6B';
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const safe = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const baseNodes = clone(model.figure.data[4]);
+  const nodeIndex = new Map(model.nodes.map((n,i) => [n,i]));
+  const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+  $('reduce').checked = media.matches;
+  let index = total, playing = false, elapsed = 0, last = null, raf = null, version = 0;
+  let paint = Promise.resolve();
+  const mutate = fn => (paint = paint.then(fn));
+  const reduced = () => media.matches || $('reduce').checked;
+  const positions = n => {const i=nodeIndex.get(n); return [baseNodes.x[i],baseNodes.y[i]];};
+  const shape = ids => {
+    const x=[],y=[];
+    for (const id of ids) {
+      for (const p of model.edges[id].curve) { x.push(p[0]); y.push(p[1]); }
+      x.push(null); y.push(null);
+    }
+    return {x,y};
+  };
+  const controls = () => {
+    $('seek').value=index; $('counter').textContent=`${index} / ${total} pasos`;
+    $('play').textContent=playing?'Ⅱ Pausar':'▶ Reproducir';
+    $('play').disabled=total===0;
+    $('previous').disabled=index===0; $('reset').disabled=index===0&&!playing;
+    $('next').disabled=index===total; $('end').disabled=index===total;
+    $('state').textContent=playing?'Explorando procedimiento':index===total?'Solución final':index===0?'Estado inicial':'Procedimiento · en pausa';
+  };
+  function snapshot(count) {
+    const selected=new Set(), parents=new Map(), visited=new Set(), flows=model.edges.map(()=>0);
+    const distances = new Map(), timings=new Map();
+    if (model.kind==='dijkstra') distances.set(model.source,0);
+    for (let i=0;i<count;i++) {
+      const e=events[i];
+      if (model.kind==='mst' && e.accepted) selected.add(e.edge);
+      if (model.kind==='dijkstra' && e.accepted) {parents.set(e.target,e.edge);distances.set(e.target,e.distance);}
+      if (model.kind==='flow') for(const arc of e.path) flows[arc.edge]+=e.amount*(arc.reverse?-1:1);
+      if (model.kind==='project') {visited.add(e.node);timings.set(e.node,e.text);}
+    }
+    if(model.kind==='dijkstra') for(const edge of parents.values()) selected.add(edge);
+    if(model.kind==='flow') flows.forEach((f,i)=>{if(f>0)selected.add(i);});
+    if(count===total && model.final_edges) { selected.clear();model.final_edges.forEach(i=>selected.add(i)); }
+    return {selected,visited,flows,distances,timings};
+  }
+  async function draw(count, evaluating=false) {
+    const state=snapshot(count), e=evaluating?events[count]:(count>0&&count<total?events[count-1]:null);
+    const focused=e&&e.edge!==undefined?[e.edge]:e&&e.path?e.path.map(a=>a.edge):[];
+    const selected=shape(state.selected), focus=shape(focused);
+    let nodes=clone(baseNodes);
+    const active=new Set(state.visited);
+    if(model.kind!=='project') for(const i of state.selected) {active.add(model.edges[i].source);active.add(model.edges[i].target);}
+    nodes.marker.color=model.nodes.map(n=>active.has(n)?'#206B60':'#233B55');
+    nodes.marker.line.color=model.nodes.map(n=>active.has(n)?accent:'#6B89AB');
+    if(model.kind==='project') {
+      nodes.customdata=model.nodes.map(n=>`<b>${safe(n)}</b><br>${safe(state.timings.get(n)||'Tiempos aún no calculados')}`);
+      if(e) nodes.marker.color[nodeIndex.get(e.node)]=amber;
+      if(count===total&&!evaluating) nodes=clone(model.final_nodes);
+    }
+    if(model.kind==='dijkstra') nodes.customdata=model.nodes.map(n=>`<b>${safe(n)}</b><br>Distancia ${count===total?'calculada':'provisional'}: ${state.distances.has(n)?state.distances.get(n):'∞'}`);
+    const annotations=clone(model.figure.layout.annotations||[]);
+    const edgeHover=model.edges.map((edge,i)=>`<b>${safe(edge.source)} ${model.directed?'→':'—'} ${safe(edge.target)}</b><br>${model.kind==='flow'?`${state.flows[i]} / ${edge.capacity}`:`Valor: ${edge.weight??edge.capacity??''}`}`);
+    if(model.directed) model.edges.forEach((edge,i)=>{
+      const hasLabels = model.kind !== 'project' && model.edges.length <= 55;
+      const arrowIndex = i * (hasLabels ? 2 : 1) + (hasLabels ? 1 : 0);
+      if(annotations[arrowIndex]) annotations[arrowIndex].arrowcolor=focused.includes(i)?amber:state.selected.has(i)?accent:'#60748D';
+    });
+    if(model.kind==='flow') model.edges.forEach((edge,i)=>{
+      if(edge.label!==null && annotations[edge.label]) annotations[edge.label].text=`${state.flows[i]} / ${edge.capacity}`;
+    });
+    $('title').textContent=e?e.title:count===total?'Solución final':'Estado inicial';
+    $('description').textContent=e?e.text:count===total?model.final_text:'Pulsá Reproducir para observar los pasos registrados. También podés avanzar manualmente.';
+    controls();
+    await mutate(async()=>{
+      await Plotly.restyle(graph, {x:[selected.x],y:[selected.y]},[1]);
+      await Plotly.restyle(graph, {x:[focus.x],y:[focus.y]},[2]);
+      await Plotly.restyle(graph, {customdata:[edgeHover]},[3]);
+      await Plotly.restyle(graph, {marker:[nodes.marker],text:[nodes.text],customdata:[nodes.customdata]},[4]);
+      await Plotly.restyle(graph, {x:[[]],y:[[]]},[5,6]);
+      await Plotly.relayout(graph,{annotations});
+    });
+  }
+  function pause() { playing=false;version++;last=null;cancelAnimationFrame(raf);controls(); }
+  async function seek(count) {pause();elapsed=0;index=Math.max(0,Math.min(total,count));await draw(index);}
+  function point(path,fraction) {
+    const length=path.length, scaled=Math.min(.999999,fraction)*length;
+    const arc=path[Math.floor(scaled)], curve=model.edges[arc.edge].curve;
+    const t=arc.reverse?1-(scaled%1):scaled%1;
+    const place=t*(curve.length-1), i=Math.min(curve.length-2,Math.floor(place)), k=place-i;
+    const p=[curve[i][0]*(1-k)+curve[i+1][0]*k,curve[i][1]*(1-k)+curve[i+1][1]*k];
+    const before=arc.reverse?curve[i+1]:curve[i];
+    return {p,before,color:arc.cancel?amber:accent};
+  }
+  async function tick(time, token) {
+    if(!playing||token!==version)return;
+    if(last!==null) elapsed+=Math.min(time-last,100)*Number($('speed').value);
+    last=time;
+    const event=events[index], duration=Math.max(1050,(event.path?.length||0)*600), fraction=Math.min(1,elapsed/duration);
+    if(!reduced()) {
+      if(event.path?.length) {
+        const {p,before,color}=point(event.path,fraction);
+        await mutate(()=>Plotly.restyle(graph,{x:[[before[0],p[0]]],y:[[before[1],p[1]]],
+          'marker.color':color},[5]));
+      } else {
+        const ids=event.node?[event.node]:[model.edges[event.edge].source,model.edges[event.edge].target];
+        const coords=ids.map(positions), size=32+12*Math.sin(fraction*Math.PI);
+        await mutate(()=>Plotly.restyle(graph,{x:[coords.map(p=>p[0])],y:[coords.map(p=>p[1])],
+          'marker.size':size},[6]));
+      }
+    }
+    if(!playing||token!==version)return;
+    if(fraction>=1) {
+      index++;elapsed=0;last=null;
+      if(index===total) {pause();await draw(index);return;}
+      await draw(index,true);
+      if(!playing||token!==version)return;
+    }
+    raf=requestAnimationFrame(t=>tick(t,token).catch(fail));
+  }
+  function fail(error) {pause();$('title').textContent='No se pudo reproducir la animación';$('description').textContent='Podés consultar la solución final y el procedimiento en las pestañas de la aplicación.';console.error(error);}
+  $('play').onclick=async()=>{
+    if(playing){pause();return;}
+    if(index===total) {index=0;elapsed=0;}
+    playing=true;last=null;const token=++version;
+    await draw(index,true);if(playing&&token===version)raf=requestAnimationFrame(t=>tick(t,token).catch(fail));
+  };
+  $('reset').onclick=()=>seek(0).catch(fail);
+  $('previous').onclick=()=>seek(index-1).catch(fail);
+  $('next').onclick=()=>seek(index+1).catch(fail);
+  $('end').onclick=()=>seek(total).catch(fail);
+  $('seek').oninput=()=>seek(Number($('seek').value)).catch(fail);
+  $('reduce').onchange=()=>seek(index).catch(fail);
+  media.addEventListener('change',()=>seek(index).catch(fail));
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+  new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&playing)pause();}).observe(graph);
+  const figure=model.figure;
+  const xs=baseNodes.x, ys=baseNodes.y;
+  // Rangos fijos evitan saltos al aparecer el indicador móvil o resaltar nodos.
+  function range(values) {const lo=Math.min(...values),hi=Math.max(...values),pad=Math.max((hi-lo)*.18,.4);return [lo-pad,hi+pad];}
+  figure.layout.xaxis.range=range(xs);figure.layout.yaxis.range=range(ys);
+  figure.layout.xaxis.autorange=false;figure.layout.yaxis.autorange=false;
+  delete figure.layout.height;delete figure.layout.width;figure.layout.autosize=true;
+  figure.data.push({type:'scatter',mode:'markers',x:[],y:[],hoverinfo:'skip',
+    marker:{symbol:'arrow',angleref:'previous',size:[0,22],color:accent,line:{color:'#e5edf8',width:1}}});
+  figure.data.push({type:'scatter',mode:'markers',x:[],y:[],hoverinfo:'skip',
+    marker:{symbol:'circle-open',size:38,color:amber,line:{width:3}}});
+  Plotly.newPlot(graph,figure.data,figure.layout,{displaylogo:false,scrollZoom:true,responsive:true,
+    modeBarButtonsToRemove:['select2d','lasso2d'],toImageButtonOptions:{filename:'procedimiento_red',scale:2}})
+    .then(async()=>{ $('seek').max=total;$('seek').disabled=false;await draw(index);
+      new ResizeObserver(()=>Plotly.Plots.resize(graph)).observe(graph);
+    }).catch(fail);
+})();
+</script></body></html>

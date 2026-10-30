@@ -28,7 +28,11 @@ with st.sidebar:
     st.divider()
     st.caption("INVESTIGACIÓN OPERATIVA\n\nUTN · Facultad Regional Venado Tuerto")
 hero(algorithm, area)
-configuration, workspace = st.columns([.37, .63], gap="large")
+if st.toggle("Ampliar visualización", key="focus_mode", help="Contrae la configuración para dedicar todo el ancho al grafo."):
+    configuration = st.expander("Configuración del problema", icon=":material/tune:")
+    workspace = st.container()
+else:
+    configuration, workspace = st.columns([.35, .65], gap="medium")
 try:
     with configuration, st.container(key="configuration"):
         if area == "Redes":
@@ -78,7 +82,7 @@ try:
         saved = st.session_state.get("solution")
         if saved and saved[0] == signature:
             if area == "Redes":
-                render_graph_result(graph, saved[1], saved[2])
+                render_graph_result(graph, saved[1], saved[2], start_node=source)
             else:
                 render_project_result(project, saved[1], saved[2])
         else:
