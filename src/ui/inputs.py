@@ -5,6 +5,8 @@ import random
 import pandas as pd
 import streamlit as st
 
+from .theme import section
+
 from src.services.data_io import (
     graph_from_rows, graph_csv, project_from_rows, project_csv, read_csv,
 )
@@ -36,56 +38,61 @@ def graph_input(algorithm):
         st.session_state[revision_key] = 0
         st.session_state[nodes_key] = ""
 
-    st.subheader("1. Definí la red")
+    section("01", "Configurá la red", "Editá conexiones, cargá un archivo o usá un ejemplo.")
     directed = (True if flow else st.checkbox("Red dirigida", value=False, key="directed"))
     if flow:
         st.caption("Las conexiones tienen orientación y capacidad. Fuente y sumidero se eligen debajo.")
-    with st.expander("Ejemplos, CSV y redes grandes"):
-        col1, col2 = st.columns(2)
-        if col1.button("Cargar ejemplo", key=f"example_{family}"):
-            st.session_state[base_key] = _edge_frame(_graph_defaults(flow))
-            st.session_state[nodes_key] = ""
-            st.session_state[revision_key] += 1
-        if col2.button("Vaciar red", key=f"clear_{family}"):
-            st.session_state[base_key] = _edge_frame([])
-            st.session_state[nodes_key] = ""
-            st.session_state[revision_key] += 1
-        n = st.number_input("Nodos a generar", min_value=2, max_value=1000, value=200,
-                            step=1, key=f"size_{family}")
-        seed = st.number_input("Semilla", min_value=0, value=42, step=1, key=f"seed_{family}")
-        if st.button("Generar red conectada", key=f"generate_{family}"):
-            rng = random.Random(seed)
-            names = [f"N{i + 1}" for i in range(n)]
-            pairs = {(names[i], names[i + 1]) for i in range(n - 1)}
-            for _ in range(2 * n):
-                i, j = sorted(rng.sample(range(n), 2))
-                pairs.add((names[i], names[j]))
-            field = "capacidad" if flow else "peso"
-            rows = [{"origen": u, "destino": v, field: rng.randint(1, 30)}
-                    for u, v in sorted(pairs)]
-            st.session_state[base_key] = _edge_frame(rows)
-            st.session_state[nodes_key] = "\n".join(names)
-            st.session_state[revision_key] += 1
-        upload = st.file_uploader("Importar conexiones CSV (UTF-8)", type="csv", key=f"upload_{family}")
-        st.caption("Columnas: origen,destino,peso o capacidad. Opcional: tipo=nodo/arista. "
-                   "El archivo exportado conserva nodos aislados. Seleccioná aquí la orientación de la red.")
-        if st.button("Aplicar CSV", disabled=upload is None, key=f"apply_{family}"):
-            try:
-                rows = read_csv(upload.getvalue(), {"origen", "destino"}, {"tipo", "peso", "capacidad"})
-                loaded = graph_from_rows(rows, directed=directed)
-                st.session_state[base_key] = _edge_frame([
-                    {"origen": e.source, "destino": e.target, "peso": e.weight, "capacidad": e.capacity}
-                    for e in loaded.edges])
-                st.session_state[nodes_key] = "\n".join(loaded.nodes)
+    with st.expander("Ejemplos, CSV y redes grandes", icon=":material/folder_open:"):
+        example_tab, csv_tab, generate_tab = st.tabs(["Ejemplos", "CSV", "Generar"])
+        with example_tab:
+            col1, col2 = st.columns(2)
+            if col1.button("Cargar ejemplo", key=f"example_{family}"):
+                st.session_state[base_key] = _edge_frame(_graph_defaults(flow))
+                st.session_state[nodes_key] = ""
                 st.session_state[revision_key] += 1
-            except (ValueError, TypeError) as exc:
-                st.error(str(exc))
-    st.text_area("Nodos explícitos (uno por línea; opcional)", key=nodes_key, height=100,
-                 help="Los extremos de cada conexión se crean automáticamente. Usá este campo para nodos aislados.")
+            if col2.button("Vaciar red", key=f"clear_{family}"):
+                st.session_state[base_key] = _edge_frame([])
+                st.session_state[nodes_key] = ""
+                st.session_state[revision_key] += 1
+        with generate_tab:
+            n = st.number_input("Nodos a generar", min_value=2, max_value=1000, value=200,
+                                step=1, key=f"size_{family}")
+            seed = st.number_input("Semilla", min_value=0, value=42, step=1, key=f"seed_{family}")
+            if st.button("Generar red conectada", key=f"generate_{family}"):
+                rng = random.Random(seed)
+                names = [f"N{i + 1}" for i in range(n)]
+                pairs = {(names[i], names[i + 1]) for i in range(n - 1)}
+                for _ in range(2 * n):
+                    i, j = sorted(rng.sample(range(n), 2))
+                    pairs.add((names[i], names[j]))
+                field = "capacidad" if flow else "peso"
+                rows = [{"origen": u, "destino": v, field: rng.randint(1, 30)}
+                        for u, v in sorted(pairs)]
+                st.session_state[base_key] = _edge_frame(rows)
+                st.session_state[nodes_key] = "\n".join(names)
+                st.session_state[revision_key] += 1
+        with csv_tab:
+            upload = st.file_uploader("Importar conexiones CSV (UTF-8)", type="csv", key=f"upload_{family}")
+            st.caption("Columnas: origen,destino,peso o capacidad. Opcional: tipo=nodo/arista. "
+                       "El archivo exportado conserva nodos aislados. Seleccioná aquí la orientación de la red.")
+            if st.button("Aplicar CSV", disabled=upload is None, key=f"apply_{family}"):
+                try:
+                    rows = read_csv(upload.getvalue(), {"origen", "destino"}, {"tipo", "peso", "capacidad"})
+                    loaded = graph_from_rows(rows, directed=directed)
+                    st.session_state[base_key] = _edge_frame([
+                        {"origen": e.source, "destino": e.target, "peso": e.weight, "capacidad": e.capacity}
+                        for e in loaded.edges])
+                    st.session_state[nodes_key] = "\n".join(loaded.nodes)
+                    st.session_state[revision_key] += 1
+                except (ValueError, TypeError) as exc:
+                    st.error(str(exc))
+    with st.expander("Nodos explícitos · opcional", icon=":material/scatter_plot:"):
+        st.text_area("Nodos explícitos (uno por línea; opcional)", key=nodes_key, height=100,
+                     help="Los extremos de cada conexión se crean automáticamente. Usá este campo para nodos aislados.")
     metric = "capacidad" if flow else "peso"
     edited = st.data_editor(
         st.session_state[base_key], num_rows="dynamic", hide_index=True, width="stretch",
-        column_order=["origen", "destino", metric],
+        height=250, column_order=["origen", "destino", metric],
         column_config={"origen": st.column_config.TextColumn("Origen", required=True),
                        "destino": st.column_config.TextColumn("Destino", required=True),
                        "peso": st.column_config.NumberColumn("Peso", format="%.6g"),
@@ -95,7 +102,7 @@ def graph_input(algorithm):
     st.caption("Agregá filas al final. Para borrarlas, seleccioná las filas y usá la papelera del editor.")
     nodes = [line.strip() for line in st.session_state[nodes_key].splitlines() if line.strip()]
     graph = graph_from_rows(edited.to_dict("records"), directed=directed, nodes=nodes)
-    st.download_button("Descargar red CSV", graph_csv(graph), "red.csv", "text/csv", key="download_graph")
+    st.download_button("Descargar red CSV", graph_csv(graph), "red.csv", "text/csv", key="download_graph", icon=":material/download:")
     return graph
 
 
@@ -124,10 +131,10 @@ def project_input(pert):
     if base not in st.session_state:
         st.session_state[base] = _activity_frame(_project_defaults(pert), pert)
         st.session_state[rev] = 0
-    st.subheader("1. Definí las actividades")
+    section("01", "Configurá las actividades")
     st.caption("Predecesoras inmediatas separadas por ; (ejemplo: A;B). "
                "Dejá la celda vacía si la actividad puede comenzar al inicio.")
-    with st.expander("Ejemplo y archivos CSV"):
+    with st.expander("Ejemplo y archivos CSV", icon=":material/folder_open:"):
         if st.button("Cargar General Foundry", key=f"example_{family}"):
             st.session_state[base] = _activity_frame(_project_defaults(pert), pert)
             st.session_state[rev] += 1
@@ -151,9 +158,9 @@ def project_input(pert):
     config["actividad"] = st.column_config.TextColumn("Actividad", required=True)
     config["predecesoras"] = st.column_config.TextColumn("Predecesoras")
     edited = st.data_editor(st.session_state[base], num_rows="dynamic", hide_index=True,
-                            width="stretch", column_config=config,
+                            width="stretch", height=320, column_config=config,
                             key=f"activities_{family}_{st.session_state[rev]}")
     project = project_from_rows(edited.to_dict("records"), pert=pert)
     st.download_button("Descargar actividades CSV", project_csv(project, pert=pert),
-                        f"{family}.csv", "text/csv", key="download_project")
+                        f"{family}.csv", "text/csv", key="download_project", icon=":material/download:")
     return project
