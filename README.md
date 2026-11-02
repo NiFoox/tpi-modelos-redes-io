@@ -4,6 +4,12 @@ Aplicación para cargar, visualizar y resolver modelos de redes y proyectos.
 Trabajo Práctico Integrador de Ingeniería en Sistemas de Información,
 UTN FRVT, 2026.
 
+## Aplicación publicada
+
+[Probar Modelos de Redes](https://modelos-redes-io.streamlit.app/)
+
+La aplicación está alojada en Streamlit Community Cloud. No requiere instalación para utilizarla desde el navegador.
+
 ## Funcionalidades
 
 | Problema | Algoritmo | Resultados |
